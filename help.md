@@ -11,3 +11,7 @@
 
 - `ng g application demo`
 
+
+## publish to npm 
+- npm run publish-ngx-audio-control
+- `ng build ngx-audio-control --configuration production && cd dist/ngx-audio-control && npm publish --access=public`

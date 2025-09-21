@@ -1,0 +1,27 @@
+{
+  "name": "ngx-alert-modal",
+  "version": "2.0.0",
+  "peerDependencies": {
+    "@angular/common": ">=18",
+    "@angular/core": ">=18"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "homepage": "https://mr-samani.github.io/pkgs/alert",
+  "sideEffects": false,
+  "keywords": [
+    "alert",
+    "swal",
+    "dialog",
+    "popup",
+    "modal",
+    "sweetAlert"
+  ],
+  "author": {
+    "name": "Mohammadreza Samani",
+    "email": "Mr.samani1368@gmail.com",
+    "url": "https://www.npmjs.com/~mr-samani"
+  },
+  "license": "MIT"
+}

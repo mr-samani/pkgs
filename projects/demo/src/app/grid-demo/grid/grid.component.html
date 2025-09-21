@@ -1,0 +1,17 @@
+<label><input type="checkbox" [(ngModel)]="rtl" [value]="true">
+    {{rtl}}
+</label>
+<div class="container" [dir]="rtl?'rtl':'ltr'" style="display: flex;">
+    <div style="flex: 80;">
+        <grid [layout]="layout" [config]="config">
+            <ng-container *ngFor="let item of layout">
+                <grid-item [id]="item.id">{{item.id}}</grid-item>
+            </ng-container>
+        </grid>
+    </div>   
+     <div style="flex: 20;">
+        <pre>{{layout|json}}</pre>
+    </div>
+
+
+</div>

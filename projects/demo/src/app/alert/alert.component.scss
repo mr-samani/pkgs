@@ -1,0 +1,23 @@
+.container {
+    max-width: 1000px;
+    margin: 30px auto;
+}
+
+mat-card-content {
+    color: wheat;
+}
+
+.configuration {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+
+}
+
+.btn-demo {
+    margin: 0 auto;
+    display: block;
+    height: 64px;
+    width: 200px;
+}

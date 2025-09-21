@@ -10,10 +10,8 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "project": "projects/ngx-audio-control/ng-package.json"
-          },
+          "builder": "@angular/build:ng-packagr",
+          "options": {},
           "configurations": {
             "production": {
               "tsConfig": "projects/ngx-audio-control/tsconfig.lib.prod.json"
@@ -25,13 +23,10 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:karma",
           "options": {
             "tsConfig": "projects/ngx-audio-control/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["projects/ngx-audio-control/polyfills.ts"]
           }
         }
       }
@@ -48,27 +43,28 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/demo",
+            "outputPath": "docs",
+            "baseHref": "/pkgs/",
             "index": "projects/demo/src/index.html",
-            "main": "projects/demo/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["projects/demo/polyfills.ts"],
             "tsConfig": "projects/demo/tsconfig.app.json",
+            "browser": "projects/demo/src/main.ts",
             "inlineStyleLanguage": "scss",
             "assets": [
               "projects/demo/src/favicon.ico",
               "projects/demo/src/assets"
             ],
             "styles": [
+              "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
               "projects/demo/src/styles.scss"
             ],
             "scripts": []
           },
           "configurations": {
             "production": {
+              "tsConfig": "projects/demo/tsconfig.app.json",
               "budgets": [
                 {
                   "type": "initial",
@@ -77,16 +73,14 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "5kb",
+                  "maximumError": "6kb"
                 }
               ],
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
@@ -95,40 +89,88 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "demo:build:production"
+              "buildTarget": "demo:build:production"
             },
             "development": {
-              "browserTarget": "demo:build:development"
+              "buildTarget": "demo:build:development"
             }
           },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "demo:build"
-          }
+          "builder": "@angular/build:extract-i18n",
+          "options": {}
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["projects/demo/polyfills.ts"],
             "tsConfig": "projects/demo/tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               "projects/demo/src/favicon.ico",
               "projects/demo/src/assets"
             ],
-            "styles": [
-              "projects/demo/src/styles.scss"
-            ],
+            "styles": ["projects/demo/src/styles.scss"],
             "scripts": []
+          }
+        }
+      }
+    },
+    "ngx-alert-modal": {
+      "projectType": "library",
+      "root": "projects/ngx-alert-modal",
+      "sourceRoot": "projects/ngx-alert-modal/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {},
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ngx-alert-modal/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ngx-alert-modal/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/ngx-alert-modal/tsconfig.spec.json",
+            "polyfills": ["projects/ngx-alert-modal/polyfills.ts"]
+          }
+        }
+      }
+    },
+    "grid-layout": {
+      "projectType": "library",
+      "root": "projects/grid-layout",
+      "sourceRoot": "projects/grid-layout/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/grid-layout/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/grid-layout/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/grid-layout/tsconfig.spec.json",
+            "polyfills": ["projects/grid-layout/polyfills.ts"]
           }
         }
       }

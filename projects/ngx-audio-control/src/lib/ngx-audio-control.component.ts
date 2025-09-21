@@ -1,127 +1,230 @@
-import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import {
+  Component,
+  DOCUMENT,
+  ElementRef,
+  Inject,
+  Input,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { formatTime } from '../helper/format-time';
 import { PlayList } from '../models/play-list';
 
 @Component({
+  standalone: false,
   selector: 'ngx-audio-control',
   templateUrl: './ngx-audio-control.component.html',
-  styleUrls: ['./ngx-audio-control.component.scss']
+  styleUrls: ['./ngx-audio-control.component.scss'],
 })
-export class NgxAudioControlComponent {
-  @ViewChild('player', { static: true }) player!: ElementRef<HTMLAudioElement>;
-  isPaused = false;
-  isMuted = false;
-  seekValue = 0;
-  seekMax = 0;
-  seekMin = 0;
-  speedDisplay = '1x';
-  currentAudioIndex = 0;
-  playerFile = '';
-  audioFiles: PlayList[] = [];
-  @Input() set fileList(value: string[]) {
-    const files = value ?? [];
+export class NgxAudioControlComponent implements OnInit {
+  /**
+   * Show play list button
+   */
+  @Input() showList: boolean = true;
+  /**
+   * Show download button
+   */
+  @Input() download: boolean = false;
+  /**
+   * Display filename in header
+   */
+  @Input() showFileName: boolean = true;
+  /**
+   * Show speed control
+   */
+  @Input() showSpeed: boolean = true;
+  /**
+   * Show volume control
+   */
+  @Input() showVolume: boolean = true;
+  /**
+   * Display vertically or horizontally between control buttons and range seeker
+   */
+  @Input() linear: boolean = false;
+  /**
+ This enumerated attribute is intended to provide a hint to the browser about what the author thinks will lead to the best user experience. It may have one of the following values:
+
+    * #### `none`:  
+    Indicates that the audio should not be preloaded.
+    #### `metadata`:
+    Indicates that only audio metadata (e.g. length) is fetched.
+    #### `auto`: 
+    Indicates that the whole audio file can be downloaded, even if the user is not expected to use it.
+    
+    ## Usage notes:
+    The autoplay attribute has precedence over preload. If autoplay is specified, the browser would obviously need to start downloading the audio for playback.
+    The browser is not forced by the specification to follow the value of this attribute; it is a mere hint.
+    ## Default value is `metadata`
+   */
+  @Input() preload: 'none' | 'metadata' | 'auto' = 'metadata';
+
+  /**
+   * set header when duration is inifinity and require call fetch request for get duration
+   */
+  @Input() fetchHeaders: HeadersInit | undefined = undefined;
+  /**
+   * An array list of file addresses in the form of strings
+   */
+  @Input() set fileList(val: string[]) {
     this.audioFiles = [];
-    for (let item of files) {
+    if (!val || Array.isArray(val) == false) {
+      return;
+    }
+    for (let item of val) {
       this.audioFiles.push({
         fileAddress: item,
-        title: (item.replace(/\\/g,'/').split(/\//g).pop()) ?? 'no name'
+        title:
+          decodeURIComponent(item).replace(/\\/g, '/').split(/\//g).pop() ??
+          'no name',
       });
     }
     this.initialize();
   }
 
+  downloading = false;
 
+  fineName = '';
+  speedDisplay = '1x';
+  audioFiles: PlayList[] = [];
 
   currentTime = '00:00';
   totalTime = '00:00';
   options = {
-    emptyListMessage: 'No any record'
+    emptyListMessage: 'No any record',
   };
-  showPlayList = false;
+  togglePlayList = false;
 
-  initialize() {
-    this.currentAudioIndex = 0;
+  currentAudioIndex = 0;
+  currentFileAddress = '';
+  @ViewChild('audio', { static: true }) audio!: ElementRef<HTMLAudioElement>;
+  seekSlider = {
+    min: 0,
+    max: Infinity,
+    value: 0,
+  };
+  buffering = false;
+  errorLoad = false;
+  constructor(@Inject(DOCUMENT) private _doc: Document) {}
+
+  ngOnInit(): void {
+    this.audio.nativeElement.onloadedmetadata = (ev) => {
+      this.getDuration().then((duration) => {
+        this.seekSlider.max = duration;
+        this.totalTime = formatTime(duration);
+      });
+    };
+
+    this.audio.nativeElement.onloadstart = () => {
+      this.buffering = true;
+      this.errorLoad = false;
+    };
+    this.audio.nativeElement.onloadeddata = () => {
+      this.buffering = false;
+      this.errorLoad = false;
+    };
+    this.audio.nativeElement.addEventListener(
+      'error',
+      (e) => {
+        this.buffering = false;
+        this.errorLoad = true;
+        var noSourcesLoaded =
+          (e.currentTarget as any).networkState ===
+          HTMLMediaElement.NETWORK_NO_SOURCE;
+        if (noSourcesLoaded)
+          console.error('player', 'could not load audio source');
+        else console.error('player', 'unknow error!');
+      },
+      true,
+    );
+
+    this.audio.nativeElement.ontimeupdate = () => {
+      this.seekSlider.value = this.audio.nativeElement.currentTime;
+      this.currentTime = formatTime(this.audio.nativeElement.currentTime);
+    };
+  }
+
+  private initialize(currentAudioIndex = 0, playAfterLoad = false) {
     this.speedDisplay = '1x';
-    this.seekValue = 0;
-    this.seekMax = 0;
-    this.seekMin = 0;
-    this.isPaused = false;
-    this.isMuted = false;
     this.currentTime = '00:00';
     this.totalTime = '00:00';
-    if (this.audioFiles.length > 0) {
-      this.playerFile = this.audioFiles[0].fileAddress;
-    } else {
-      this.playerFile = '';
+    this.currentAudioIndex = currentAudioIndex;
+    this.currentFileAddress = '';
+    this.seekSlider = {
+      min: 0,
+      max: Infinity,
+      value: 0,
+    };
+    this.stop();
+    if (this.audioFiles.length > 0 && this.audioFiles[this.currentAudioIndex]) {
+      this.currentFileAddress =
+        this.audioFiles[this.currentAudioIndex].fileAddress;
+      this.fineName = this.audioFiles[this.currentAudioIndex].title;
+      this.audio.nativeElement.load();
+    }
+    if (playAfterLoad) {
+      this.play();
     }
   }
-
-
-
 
   playPause() {
-    if (this.player.nativeElement.paused) {
+    if (this.audio.nativeElement.paused) {
       this.play();
     } else {
-      this.pause();
+      this.stop();
     }
   }
 
-  play() {
-    this.player.nativeElement.play();
-    this.isPaused = false;
-  }
-  pause() {
-    this.player.nativeElement.pause();
-    this.isPaused = true;
+  play(offset = 0) {
+    this.audio.nativeElement.play();
+    if (this.seekSlider.max == Infinity) {
+      this.getDuration(true).then((duration) => {
+        this.seekSlider.max = duration;
+        this.totalTime = formatTime(duration);
+      });
+    }
   }
 
-
+  stop() {
+    this.audio.nativeElement.pause();
+  }
 
   muteUnmute() {
-    if (this.player.nativeElement.muted) {
-      this.player.nativeElement.muted = false;
-    } else {
-      this.player.nativeElement.muted = true;
-    }
-    this.isMuted = !this.isMuted;
+    this.audio.nativeElement.muted = !this.audio.nativeElement.muted;
   }
 
-  updateSeekSlider() {
-    this.seekValue = (this.player.nativeElement.currentTime / this.player.nativeElement.duration) * 100;
-    this.currentTime = formatTime(this.player.nativeElement.currentTime);
-  }
-  onLoadMetaData() {
-    this.totalTime = formatTime(this.player.nativeElement.duration);
-  }
   seekAudio(ev: Event) {
-    let value = (ev.target as any).value;
-    this.player.nativeElement.currentTime = (value / 100) * this.player.nativeElement.duration;
+    const range = ev.target as HTMLInputElement;
+    this.audio.nativeElement.currentTime = +range.value;
   }
 
   increaseSpeed() {
-    this.player.nativeElement.playbackRate += 0.1;
-    this.speedDisplay = `${this.player.nativeElement.playbackRate.toFixed(1)}x`;
+    const delta = 0.25;
+    this.audio.nativeElement.playbackRate = Math.max(
+      0.5,
+      this.audio.nativeElement.playbackRate + delta,
+    );
+    this.speedDisplay = this.audio.nativeElement.playbackRate.toFixed(2) + 'x';
   }
 
   decreaseSpeed() {
-    if (this.player.nativeElement.playbackRate > 0.1) {
-      this.player.nativeElement.playbackRate -= 0.1;
-      this.speedDisplay = `${this.player.nativeElement.playbackRate.toFixed(1)}x`;
-    }
+    const delta = -0.25;
+    this.audio.nativeElement.playbackRate = Math.max(
+      0.5,
+      this.audio.nativeElement.playbackRate + delta,
+    );
+    this.speedDisplay = this.audio.nativeElement.playbackRate.toFixed(2) + 'x';
   }
 
   changeVolume(ev: Event) {
-    let value = (ev.target as any).value;
-    this.player.nativeElement.volume = value;
+    let value = (ev.target as HTMLInputElement).value;
+    this.audio.nativeElement.volume = +value;
   }
   previous() {
     this.currentAudioIndex--;
     if (this.currentAudioIndex < 0) {
       this.currentAudioIndex = this.audioFiles.length - 1;
     }
-    this.playerFile = this.audioFiles[this.currentAudioIndex].fileAddress;
-    this.play();
+    this.initialize(this.currentAudioIndex, true);
   }
 
   next() {
@@ -129,21 +232,60 @@ export class NgxAudioControlComponent {
     if (this.currentAudioIndex >= this.audioFiles.length) {
       this.currentAudioIndex = 0;
     }
-    this.playerFile = this.audioFiles[this.currentAudioIndex].fileAddress;
-    this.play();
+    this.initialize(this.currentAudioIndex, true);
   }
-
 
   playNext() {
-
+    this.next();
   }
 
+  onClickPlayList(index: number) {
+    this.currentAudioIndex = index;
+    this.initialize(this.currentAudioIndex, true);
+  }
 
+  downloadCurrentFile() {
+    if (!this.currentFileAddress) return;
+    this.downloading = true;
+    var a: any = this._doc.createElement('a');
+    this._doc.body.appendChild(a);
+    a.style = 'display: none';
+    a.href = this.currentFileAddress;
+    a.download = this.fineName;
+    a.click();
+    window.URL.revokeObjectURL(this.currentFileAddress);
+    a.remove();
+    setTimeout(() => {
+      this.downloading = false;
+    }, 1000);
+  }
 
+  private getDuration(play = false): Promise<number> {
+    return new Promise(async (resolve, reject) => {
+      if (
+        Number.isInteger(+this.audio.nativeElement.duration) ||
+        (this.preload !== 'auto' && !play)
+      ) {
+        resolve(this.audio.nativeElement.duration);
+        return;
+      }
 
-
-
-
-
-
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
+      const audioFilePath = this.currentFileAddress;
+      try {
+        const response = await fetch(audioFilePath, {
+          headers: this.fetchHeaders,
+        });
+        const arrayBuffer = await response.arrayBuffer();
+        audioContext.decodeAudioData(arrayBuffer, ({ duration }) => {
+          audioContext.close();
+          resolve(duration);
+        });
+      } catch (error) {
+        console.error('duration:', error);
+        reject(error);
+      }
+    });
+  }
 }
