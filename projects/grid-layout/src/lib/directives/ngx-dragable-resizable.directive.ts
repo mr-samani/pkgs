@@ -1,20 +1,36 @@
 import { DOCUMENT } from '@angular/common';
 import {
   AfterContentInit,
-  AfterViewInit, Directive, ElementRef, EventEmitter,
-  HostListener, Inject, Input, Output, Renderer2, ViewChild
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Inject,
+  Input,
+  Output,
+  Renderer2,
+  ViewChild,
 } from '@angular/core';
 import { Position } from './position';
 
-
-declare type Corner = 'top' | 'right' | 'left' | 'bottom' |
-  'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+declare type Corner =
+  | 'top'
+  | 'right'
+  | 'left'
+  | 'bottom'
+  | 'topLeft'
+  | 'topRight'
+  | 'bottomLeft'
+  | 'bottomRight';
 
 @Directive({
   selector: '[NgxDragableResizable]',
-  standalone: true
+  standalone: true,
 })
-export class NgxDragableResizableDirective implements AfterViewInit, AfterContentInit {
+export class NgxDragableResizableDirective
+  implements AfterViewInit, AfterContentInit
+{
   @Input() bounding: HTMLElement | null = null;
   @Input() minWidth = 20;
   @Input() minHeight = 20;
@@ -35,61 +51,70 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
   protected draggingCorner: boolean;
   protected draggingWindow: boolean;
   protected resizer!: Function;
-  protected corners: Corner[] = ['top', 'right', 'left', 'bottom', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
+  protected corners: Corner[] = [
+    'top',
+    'right',
+    'left',
+    'bottom',
+    'topLeft',
+    'topRight',
+    'bottomLeft',
+    'bottomRight',
+  ];
   protected widgetCornerResizeStyle = {
-    'position': 'absolute',
-    'width': '10px',
-    'height': '10px',
+    position: 'absolute',
+    width: '10px',
+    height: '10px',
     // 'background': 'red',
-    'visibility': 'visible',
+    visibility: 'visible',
   };
 
   protected topLeftResizeStyle = {
-    'top': '0px',
-    'left': '0px',
-    'cursor': 'nw-resize'
+    top: '0px',
+    left: '0px',
+    cursor: 'nw-resize',
   };
   protected topRightResizeStyle = {
-    'top': '0px',
-    'right': '0px',
-    'cursor': 'nesw-resize'
+    top: '0px',
+    right: '0px',
+    cursor: 'nesw-resize',
   };
   protected bottomLeftResizeStyle = {
-    'bottom': '0px',
-    'left': '0px',
-    'cursor': 'nesw-resize'
+    bottom: '0px',
+    left: '0px',
+    cursor: 'nesw-resize',
   };
   protected bottomRightResizeStyle = {
-    'bottom': '0px',
-    'right': '0px',
-    'cursor': 'nwse-resize'
+    bottom: '0px',
+    right: '0px',
+    cursor: 'nwse-resize',
   };
   protected topResizeStyle = {
-    'top': '0',
-    'height': '10px',
-    'width': '100%',
-    'cursor': 'row-resize'
+    top: '0',
+    height: '10px',
+    width: '100%',
+    cursor: 'row-resize',
   };
   protected rightResizeStyle = {
-    'top': '0',
-    'right': '0',
-    'width': '10px',
-    'height': '100%',
-    'cursor': 'col-resize'
+    top: '0',
+    right: '0',
+    width: '10px',
+    height: '100%',
+    cursor: 'col-resize',
   };
 
   protected leftResizeStyle = {
-    'top': '0',
-    'left': '0',
-    'width': '10px',
-    'height': '100%',
-    'cursor': 'col-resize'
+    top: '0',
+    left: '0',
+    width: '10px',
+    height: '100%',
+    cursor: 'col-resize',
   };
   protected bottomResizeStyle = {
-    'bottom': '0',
-    'height': '10px',
-    'width': '100%',
-    'cursor': 'row-resize'
+    bottom: '0',
+    height: '10px',
+    width: '100%',
+    cursor: 'row-resize',
   };
 
   protected borderTop = '';
@@ -101,7 +126,7 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
   constructor(
     private _el: ElementRef<HTMLElement>,
     private renderer: Renderer2,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private _doc: Document,
   ) {
     this.px = 0;
     this.py = 0;
@@ -134,34 +159,38 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.borderLeft = style.borderLeftWidth;
   }
 
-
   findFirstParentDragRootElement() {
     if (this.dragRootElement) {
-      let parentRoot: any = findParentBySelector(this._el.nativeElement, this.dragRootElement);
+      let parentRoot: any = findParentBySelector(
+        this._doc,
+        this._el.nativeElement,
+        this.dragRootElement,
+      );
       if (parentRoot) {
         this.el = parentRoot;
       }
     }
   }
 
-
   // TODO : resize material dialog
   // TODO not working in rtl
   private checkFlexibale() {
-    if (!document.defaultView || !this.el.parentElement) {
+    if (!this._doc.defaultView || !this.el.parentElement) {
       return;
     }
-    let parentStyle = document.defaultView.getComputedStyle(this.el.parentElement);
-    if ((parentStyle.alignItems && parentStyle.alignItems !== 'normal') ||
-      (parentStyle.justifyContent && parentStyle.justifyContent !== 'normal')) {
+    let parentStyle = this._doc.defaultView.getComputedStyle(
+      this.el.parentElement,
+    );
+    if (
+      (parentStyle.alignItems && parentStyle.alignItems !== 'normal') ||
+      (parentStyle.justifyContent && parentStyle.justifyContent !== 'normal')
+    ) {
       this.el.parentElement.style.display = 'block';
       this.el.parentElement.style.alignItems = 'unset';
       this.el.parentElement.style.justifyContent = 'unset';
       this.el.style.position = 'unset !important';
     }
   }
-
-
 
   private initSize() {
     const elRec = this.el.getBoundingClientRect();
@@ -179,15 +208,9 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
       var translateY = parseInt(matrixValues[5], 10); // مقدار جابجایی در جهت top
       this.x = translateX;
       this.y = translateY;
-
     }
     this.setElPosition();
   }
-
-
-
-
-
 
   @HostListener('document:mouseup', ['$event'])
   @HostListener('document:touchend', ['$event'])
@@ -203,9 +226,6 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.el.style.transition = this.previousTransition;
   }
 
-
-
-
   @HostListener('document:mousemove', ['$event'])
   private onCornerMouseMove(event: MouseEvent) {
     if (!this.draggingCorner) {
@@ -214,9 +234,7 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     let offsetX = event.clientX - this.px;
     let offsetY = event.clientY - this.py;
     this.onCornerMove(offsetX, offsetY, event.clientX, event.clientY);
-
   }
-
 
   @HostListener('document:touchmove', ['$event'])
   private onCornerTouchMove(event: TouchEvent) {
@@ -229,7 +247,6 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     let clientY = event.touches[0].clientY;
     this.onCornerMove(offsetX, offsetY, clientX, clientY);
   }
-
 
   @HostListener('touchstart', ['$event'])
   private onTouched(event: TouchEvent) {
@@ -246,8 +263,6 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.onDragStart.emit(this.getPosition());
   }
 
-
-
   @HostListener('mousedown', ['$event'])
   private onMouseDown(event: MouseEvent) {
     if (this.drag === false) {
@@ -261,10 +276,7 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.py = event.clientY;
     this.initSize();
     this.onDragStart.emit(this.getPosition());
-
   }
-
-
 
   @HostListener('window:touchmove', ['$event'])
   private onTouchMove(event: TouchEvent) {
@@ -274,10 +286,13 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     event.preventDefault();
     let offsetX = event.touches[0].clientX - this.px;
     let offsetY = event.touches[0].clientY - this.py;
-    this.draging(offsetX, offsetY, event.touches[0].clientX, event.touches[0].clientY);
+    this.draging(
+      offsetX,
+      offsetY,
+      event.touches[0].clientX,
+      event.touches[0].clientY,
+    );
   }
-
-
 
   @HostListener('window:mousemove', ['$event'])
   private onMouseMove(event: MouseEvent) {
@@ -290,8 +305,12 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.draging(offsetX, offsetY, event.clientX, event.clientY);
   }
 
-
-  private draging(offsetX: number, offsetY: number, clientX: number, clientY: number) {
+  private draging(
+    offsetX: number,
+    offsetY: number,
+    clientX: number,
+    clientY: number,
+  ) {
     if (this.checkBoundY(offsetY)) {
       this.y += offsetY;
     }
@@ -303,7 +322,6 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.setElPosition();
     this.onDrag.emit(this.getPosition());
   }
-
 
   private checkBoundY(offsetY: number, checkTop = true, checkHeight = true) {
     if (!this.bounding) {
@@ -324,7 +342,6 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     }
   }
 
-
   /**
    * checkLeft and checkWidth useful in resize
    */
@@ -337,14 +354,15 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     const newX = selfRec.x + offsetX;
     if (newX < boundleRec.x && checkLeft) {
       return false;
-    } else if ((newX + this.width) > (boundleRec.x + boundleRec.width) && checkWidth) {
+    } else if (
+      newX + this.width > boundleRec.x + boundleRec.width &&
+      checkWidth
+    ) {
       return false;
     } else {
       return true;
     }
   }
-
-
 
   private topLeftResize(offsetX: number, offsetY: number) {
     if (this.checkBoundX(offsetX, true, false)) {
@@ -408,9 +426,6 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     }
   }
 
-
-
-
   private onCornerTouch(event: TouchEvent, resizer: Function) {
     this.draggingCorner = true;
     this.px = event.touches[0].clientX;
@@ -436,8 +451,12 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.checkFlexibale();
   }
 
-
-  private onCornerMove(offsetX: number, offsetY: number, clientX: number, clientY: number) {
+  private onCornerMove(
+    offsetX: number,
+    offsetY: number,
+    clientX: number,
+    clientY: number,
+  ) {
     let lastX = this.x;
     let lastY = this.y;
     let pWidth = this.width;
@@ -458,10 +477,6 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
     this.onResize.emit(this.getPosition());
   }
 
-
-
-
-
   /*******OUTPUT******/
 
   public setElPosition() {
@@ -479,28 +494,24 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
       height: this.height,
       point: {
         x: this.x,
-        y: this.y
-      }
+        y: this.y,
+      },
     };
   }
 
-
-
   /*---------------------------------------------------------------------------------*/
   private setStyle(child: any, styleName: any) {
-    Object.keys(styleName).forEach(newStyle => {
+    Object.keys(styleName).forEach((newStyle) => {
       // this.renderer.setStyle(
       //   this.el, `${newStyle}`, styleName[newStyle]
       // );
-      this.renderer.setStyle(
-        child, `${newStyle}`, styleName[newStyle]
-      );
+      this.renderer.setStyle(child, `${newStyle}`, styleName[newStyle]);
     });
   }
 
   private addCornersToElement() {
     for (const corner of this.corners) {
-      const child = this.document.createElement('div');
+      const child = this._doc.createElement('div');
       child.classList.add('widget-corner-resize', corner);
       this.setStyle(child, this.widgetCornerResizeStyle);
       const self: any = this;
@@ -535,7 +546,7 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
           this.topLeftResizeStyle.top = `calc(-${this.borderTop ?? 0})`;
           break;
       }
-      this.setStyle(child, self[(corner + 'ResizeStyle')]);
+      this.setStyle(child, self[corner + 'ResizeStyle']);
       child.addEventListener('mousedown', ($event) => {
         this.onCornerClick($event, self[corner + 'Resize']);
       });
@@ -544,34 +555,26 @@ export class NgxDragableResizableDirective implements AfterViewInit, AfterConten
       });
       this.renderer.appendChild(this.el, child);
     }
-
-
   }
-
 }
 
-
-
-
-
-
-
-
-
-
-
-export function collectionHas(a: NodeListOf<Element>, b: ParentNode) { //helper function (see below)
+export function collectionHas(a: NodeListOf<Element>, b: ParentNode) {
+  //helper function (see below)
   for (var i = 0, len = a.length; i < len; i++) {
     if (a[i] == b) return true;
   }
   return false;
 }
-export function findParentBySelector(elm: HTMLElement, selector: string) {
-  var all = document.querySelectorAll(selector);
+export function findParentBySelector(
+  doc: Document,
+  elm: HTMLElement,
+  selector: string,
+) {
+  var all = doc.querySelectorAll(selector);
   var cur = elm.parentNode;
-  while (cur && !collectionHas(all, cur)) { //keep going up until you find a match
+  while (cur && !collectionHas(all, cur)) {
+    //keep going up until you find a match
     cur = cur.parentNode; //go up
   }
   return cur; //will return null if not found
 }
-
