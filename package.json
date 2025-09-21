@@ -7,8 +7,8 @@
     "build": "ng build demo",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "publish-ngx-alert-modal": "ng build ngx-alert-modal --configuration production && cd dist/ngx-alert-modal && npm publish",
-    "publish-ngx-audio-control": "ng build ngx-audio-control --configuration production && cd dist/ngx-audio-control && npm publish --access=public"
+    "publish-ngx-alert-modal": "ng build ngx-alert-modal && cd dist/ngx-alert-modal && npm publish",
+    "publish-ngx-audio-control": "ng build ngx-audio-control && cd dist/ngx-audio-control && npm publish --access=public"
   },
   "private": true,
   "dependencies": {
