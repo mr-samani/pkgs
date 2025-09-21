@@ -1,10 +1,10 @@
 {
   "name": "ngx-audio-control",
   "description": "Audio Player control for angular projects with speed control by native player in browser (HTML5)",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "peerDependencies": {
-    "@angular/common": ">=14.2.0",
-    "@angular/core": ">=14.2.0"
+    "@angular/common": ">=18.0.0",
+    "@angular/core": ">=18.0.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"

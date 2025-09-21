@@ -1,11 +1,12 @@
 import {
-  ApplicationRef, ComponentFactoryResolver, ComponentRef, EmbeddedViewRef, Injectable, Injector,
+  ApplicationRef, ComponentFactoryResolver, ComponentRef, EmbeddedViewRef, Inject, Injectable, Injector,
 } from '@angular/core';
 import { NGX_ALERT_CONFIG, defaultOptions, } from '../models/AlertOptions';
 import { IAlertOptions } from "../models/IAlertOptions";
 import { NgxAlertModalComponent } from './ngx-alert-modal.component';
 import { AlertResult } from '../models/alert-result';
 import { applyDefaultConfig } from '../helper/apply-default';
+import { DOCUMENT } from '@angular/common';
 
 
 @Injectable({
@@ -19,6 +20,7 @@ export class NgxAlertModalService {
     private componentFactoryResolver: ComponentFactoryResolver,
     private appRef: ApplicationRef,
     private injector: Injector,
+    @Inject(DOCUMENT) private _doc:Document
   ) { }
 
 
@@ -58,7 +60,7 @@ export class NgxAlertModalService {
           domElem.classList.add(c);
       }
     }
-    document.body.appendChild(domElem);
+    this._doc.body.appendChild(domElem);
   }
 
   closeAll() {
