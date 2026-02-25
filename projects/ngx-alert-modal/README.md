@@ -92,6 +92,13 @@ providers:[
 export type AlertIcon = 'success' | 'error' | 'warning' | 'info' | 'question'
 
 export class AlertOptions {
+   /**
+   * add popover manual to set alert dialog container to top layer
+   * - usefull when using alert modal in angular material dialog
+   * - default is true
+   */
+  useOverlay?: boolean;
+
     /**
     * The title of the popup
     *
