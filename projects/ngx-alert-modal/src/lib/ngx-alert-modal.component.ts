@@ -29,14 +29,14 @@ export class NgxAlertModalComponent {
 
 
   @HostListener('document:keydown.escape', ['$event'])
-  onScapeKey(event: KeyboardEvent) {
+  onScapeKey(event: Event) {
     if (this.options.allowEscapeKey) {
       this.onCancel();
     }
   }
 
   @HostListener('document:keydown.enter', ['$event'])
-  onEnterKey(event: KeyboardEvent) {
+  onEnterKey(event: Event) {
     event.stopPropagation();
     event.preventDefault();
     if (this.options.allowEnterKey) {
